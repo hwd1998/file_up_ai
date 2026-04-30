@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.upload.mapper.UploadTaskMapper">
+
+    <select id="selectTaskPage" resultType="com.example.upload.model.entity.UploadTask">
+        SELECT t.*
+        FROM upload_tasks t
+        WHERE t.is_deleted = 0
+        <if test="!isAdmin">
+            AND t.uploaded_by = #{userId}
+        </if>
+        <if test="query.directoryId != null">
+            AND t.directory_id = #{query.directoryId}
+        </if>
+        <if test="query.status != null and query.status != ''">
+            AND t.status = #{query.status}
+        </if>
+        <if test="query.fileName != null and query.fileName != ''">
+            AND t.file_name LIKE CONCAT('%', #{query.fileName}, '%')
+        </if>
+        <if test="query.startTime != null">
+            AND t.create_time >= #{query.startTime}
+        </if>
+        <if test="query.endTime != null">
+            AND t.create_time &lt;= #{query.endTime}
+        </if>
+        ORDER BY t.create_time DESC
+    </select>
+
+</mapper>

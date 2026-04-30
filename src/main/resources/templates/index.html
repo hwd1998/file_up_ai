@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>目录首页 - 数据上报平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none!important}</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Top Nav -->
+<nav class="bg-white border-b border-gray-200 px-6 py-0 flex items-center justify-between fixed top-0 left-0 right-0 z-30 h-14">
+    <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-md flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+        </div>
+        <span class="font-semibold text-gray-800 text-sm">数据上报平台</span>
+    </div>
+    <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-600" th:text="${loginUser?.userName}"></span>
+        <span th:if="${loginUser?.admin}" class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-medium">管理员</span>
+        <a href="/auth/feishu/login" class="text-xs text-gray-400 hover:text-gray-600 ml-2">退出</a>
+    </div>
+</nav>
+
+<div class="flex pt-14 min-h-screen"
+     x-data="directoryApp()"
+     x-init="loadTree()">
+
+    <!-- Sidebar: Directory Tree -->
+    <aside class="w-64 bg-white border-r border-gray-200 fixed top-14 left-0 bottom-0 overflow-y-auto z-20 flex flex-col">
+        <div class="px-4 py-3 border-b border-gray-100">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">目录导航</p>
+        </div>
+
+        <!-- Search -->
+        <div class="px-3 py-2">
+            <div class="relative">
+                <svg class="absolute left-2.5 top-2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                </svg>
+                <input type="text" x-model="searchText" placeholder="搜索目录..."
+                       class="w-full pl-8 pr-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-400"/>
+            </div>
+        </div>
+
+        <!-- Tree -->
+        <div class="flex-1 overflow-y-auto px-2 pb-4">
+            <template x-if="loading">
+                <div class="flex items-center justify-center py-8">
+                    <svg class="w-5 h-5 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                </div>
+            </template>
+            <template x-if="!loading">
+                <div>
+                    <template x-for="node in filteredTree" :key="node.id">
+                        <div x-data="{ open: true }">
+                            <!-- Parent Node -->
+                            <div class="flex items-center gap-1 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-gray-50 group"
+                                 :class="selectedId === node.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700'"
+                                 @click="selectDirectory(node)">
+                                <button @click.stop="open = !open" class="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                                    <svg x-show="node.children && node.children.length > 0" class="w-3 h-3 transition-transform" :class="open ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </button>
+                                <svg class="w-4 h-4 flex-shrink-0" :class="node.isLeaf ? 'text-blue-400' : 'text-yellow-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                                </svg>
+                                <span class="text-sm truncate flex-1" x-text="node.name"></span>
+                                <span x-show="node.pendingCount > 0"
+                                      class="text-xs bg-red-500 text-white rounded-full px-1.5 py-0.5 min-w-[18px] text-center leading-none"
+                                      x-text="node.pendingCount"></span>
+                            </div>
+                            <!-- Children -->
+                            <div x-show="open && node.children && node.children.length > 0" class="ml-4">
+                                <template x-for="child in node.children" :key="child.id">
+                                    <div class="flex items-center gap-1 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-gray-50"
+                                         :class="selectedId === child.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700'"
+                                         @click="selectDirectory(child)">
+                                        <div class="w-4 flex-shrink-0"></div>
+                                        <svg class="w-4 h-4 flex-shrink-0 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                        <span class="text-sm truncate flex-1" x-text="child.name"></span>
+                                        <span x-show="child.pendingCount > 0"
+                                              class="text-xs bg-red-500 text-white rounded-full px-1.5 py-0.5 min-w-[18px] text-center"
+                                              x-text="child.pendingCount"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="filteredTree.length === 0 && !loading">
+                        <p class="text-sm text-gray-400 text-center py-6">暂无可访问的目录</p>
+                    </template>
+                </div>
+            </template>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-64 flex-1 p-6">
+        <!-- Welcome / Empty State -->
+        <template x-if="!selectedDir">
+            <div class="flex flex-col items-center justify-center h-96">
+                <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                </svg>
+                <p class="text-gray-500 font-medium">请从左侧选择一个目录</p>
+                <p class="text-gray-400 text-sm mt-1">选择目录后即可上传数据文件</p>
+            </div>
+        </template>
+
+        <!-- Directory Selected -->
+        <template x-if="selectedDir">
+            <div>
+                <!-- Breadcrumb -->
+                <div class="flex items-center gap-1 text-sm text-gray-500 mb-6">
+                    <span>首页</span>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                    <span class="text-gray-900 font-medium" x-text="selectedDir.name"></span>
+                </div>
+
+                <!-- Directory Info Card -->
+                <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900" x-text="selectedDir.name"></h2>
+                            <p class="text-sm text-gray-500 mt-1" x-text="selectedDir.fullPath"></p>
+                        </div>
+                        <div class="flex gap-2" x-show="selectedDir.isLeaf">
+                            <a :href="'/directory/' + selectedDir.id + '/upload'"
+                               class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                </svg>
+                                上传文件
+                            </a>
+                            <a :href="'/directory/' + selectedDir.id + '/history'"
+                               class="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg border border-gray-200 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                上传历史
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Permissions -->
+                    <div class="mt-4 flex flex-wrap gap-2" x-show="selectedDir.permissions && selectedDir.permissions.length > 0">
+                        <template x-for="perm in selectedDir.permissions" :key="perm">
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md" x-text="perm === 'UPLOAD' ? '可上传' : '可查看历史'"></span>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Sub-directories (if not leaf) -->
+                <template x-if="!selectedDir.isLeaf && selectedDir.children && selectedDir.children.length > 0">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-700 mb-3">子目录</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <template x-for="child in selectedDir.children" :key="child.id">
+                                <div class="bg-white rounded-lg border border-gray-200 p-4 cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all"
+                                     @click="selectDirectory(child)">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-sm font-medium text-gray-800 truncate" x-text="child.name"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </main>
+</div>
+
+<script>
+function directoryApp() {
+    return {
+        tree: [],
+        filteredTree: [],
+        loading: true,
+        searchText: '',
+        selectedId: null,
+        selectedDir: null,
+
+        async loadTree() {
+            try {
+                const res = await fetch('/harness/api/v1/directories/tree');
+                const json = await res.json();
+                if (json.code === 200) {
+                    this.tree = json.data || [];
+                    this.filteredTree = this.tree;
+                }
+            } catch (e) {
+                console.error('Failed to load directory tree', e);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        selectDirectory(node) {
+            this.selectedId = node.id;
+            this.selectedDir = node;
+        },
+
+        init() {
+            this.$watch('searchText', (val) => {
+                if (!val) {
+                    this.filteredTree = this.tree;
+                    return;
+                }
+                const q = val.toLowerCase();
+                this.filteredTree = this.tree.filter(n =>
+                    n.name.toLowerCase().includes(q) ||
+                    (n.children && n.children.some(c => c.name.toLowerCase().includes(q)))
+                );
+            });
+        }
+    };
+}
+</script>
+</body>
+</html>

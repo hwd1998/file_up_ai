@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>文件上传管理系统 - 创建模板</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-primary-fixed-variant": "#0039b5",
+                        "outline-variant": "#c4c5d7",
+                        "surface-container-high": "#e7e8e9",
+                        "error": "#ba1a1a",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-tertiary-container": "#bbd7fa",
+                        "surface-container-low": "#f3f4f5",
+                        "surface-bright": "#f8f9fa",
+                        "secondary-fixed": "#dbe1ff",
+                        "tertiary-fixed": "#d0e4ff",
+                        "background": "#f8f9fa",
+                        "primary": "#0037b0",
+                        "on-primary-fixed": "#001551",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#1d4ed8",
+                        "on-tertiary-fixed": "#001d35",
+                        "primary-fixed-dim": "#b7c4ff",
+                        "inverse-primary": "#b7c4ff",
+                        "on-surface-variant": "#434655",
+                        "tertiary-container": "#435e7c",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#adc9eb",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-primary-container": "#cad3ff",
+                        "on-tertiary-fixed-variant": "#2d4965",
+                        "on-background": "#191c1d",
+                        "on-secondary-container": "#fefcff",
+                        "surface-dim": "#d9dadb",
+                        "surface": "#f8f9fa",
+                        "on-secondary-fixed": "#00174b",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#747686",
+                        "surface-container": "#edeeef",
+                        "inverse-surface": "#2e3132",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#2b4663",
+                        "on-surface": "#191c1d",
+                        "surface-tint": "#2151da",
+                        "secondary": "#0051d5",
+                        "primary-fixed": "#dce1ff",
+                        "secondary-container": "#316bf3"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px",
+                        "container-padding": "24px",
+                        "gutter": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "label-bold": ["Inter"],
+                        "caption": ["Inter"],
+                        "body-base": ["Inter"],
+                        "body-large": ["Inter"],
+                        "headline-section": ["Inter"],
+                        "display-xl": ["Inter"],
+                        "headline-dashboard": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-bold": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "body-base": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-large": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-section": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "display-xl": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-dashboard": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #f8f9fa;
+            color: #191c1d;
+        }
+    </style>
+</head>
+<body class="font-body-base antialiased">
+<!-- TopNavBar -->
+<header class="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50 flex justify-between items-center h-16 px-6 w-full font-inter antialiased text-sm font-medium">
+<div class="flex items-center gap-4">
+<span class="text-lg font-bold text-gray-900 dark:text-white">文件上传管理系统</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+<input class="pl-10 pr-4 py-2 bg-gray-50 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-64" placeholder="搜索文件或模板..." type="text"/>
+</div>
+<div class="flex items-center gap-4 text-gray-500">
+<span class="material-symbols-outlined cursor-pointer hover:bg-gray-50 p-2 rounded-full transition-colors">notifications</span>
+<span class="material-symbols-outlined cursor-pointer hover:bg-gray-50 p-2 rounded-full transition-colors">help</span>
+<span class="material-symbols-outlined cursor-pointer hover:bg-gray-50 p-2 rounded-full transition-colors">settings</span>
+</div>
+<div class="h-8 w-8 rounded-full bg-primary overflow-hidden">
+<img alt="User Avatar" data-alt="A professional close-up headshot of a corporate male user with a friendly expression. The lighting is soft and studio-quality, emphasizing a modern light-mode office aesthetic. The background is a clean, neutral gray that complements a sophisticated blue-themed corporate user interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpFTbo2apVE8L6zdGreuiKQyPqiavz0YjALFtSG_bUYHLZ54HXnQFn4rhfxguTgSTX9f8uwQiJFjYK5zK-TH4QF2N2CMjeIKv9f4c_g14omLSQw-SnkH0id2QHtPWLjWyQ4NCImYAtoBBvlOHLbi0spe2Snwn5QyiakS06OLkZV5jfFWrdf35pUoK-2cyY6MjG7Rwb5ZHUg4d_SXGvA8s2Uu1-pbC-f-oqkUa56CruDa4zuypn1zalyO0N-iGU3dEBLU5pgcHqmRBt"/>
+</div>
+</div>
+</header>
+<div class="flex">
+<!-- SideNavBar -->
+<aside class="fixed left-0 h-full w-[260px] border-r border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 flex flex-col gap-2 p-4 overflow-y-auto font-inter text-sm tracking-tight z-40">
+<div class="mb-6 px-2">
+<h3 class="font-semibold text-gray-700 dark:text-gray-200">管理菜单</h3>
+<p class="text-[10px] text-gray-400 uppercase tracking-widest">Enterprise Data Hub</p>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 text-gray-600 dark:text-gray-400 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>仪表盘</span>
+</a>
+<a class="flex items-center gap-3 text-gray-600 dark:text-gray-400 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">folder_open</span>
+<span>文件浏览</span>
+</a>
+<a class="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold px-4 py-3 rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">description</span>
+<span>模板管理</span>
+</a>
+<a class="flex items-center gap-3 text-gray-600 dark:text-gray-400 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span>目录管理</span>
+</a>
+<a class="flex items-center gap-3 text-gray-600 dark:text-gray-400 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span>监控看板</span>
+</a>
+<a class="flex items-center gap-3 text-gray-600 dark:text-gray-400 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>系统设置</span>
+</a>
+</nav>
+<button class="mt-8 mx-2 bg-primary text-white py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-medium hover:bg-primary-container transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>上传新文件</span>
+</button>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-[260px] w-full p-stack-lg min-h-screen flex flex-col">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 mb-4 text-xs text-gray-500 font-inter">
+<span>模板管理</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-primary font-medium">创建上传模板</span>
+</nav>
+<div class="max-w-5xl mx-auto w-full">
+<!-- Top Stepper Container -->
+<div class="bg-white p-4 rounded-xl mb-6 shadow-sm border border-gray-100 flex items-center justify-between relative overflow-hidden">
+<!-- Progress Line Background -->
+<div class="absolute top-[42px] left-[10%] right-[10%] h-[2px] bg-gray-100 -z-0"></div>
+<!-- Step 1: Active -->
+<div class="relative flex flex-col items-center gap-2 z-10 flex-1">
+<div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-200">
+                            1
+                        </div>
+<span class="text-xs font-semibold text-blue-600">基础信息</span>
+</div>
+<!-- Step 2: Future -->
+<div class="relative flex flex-col items-center gap-2 z-10 flex-1">
+<div class="w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-400 flex items-center justify-center font-bold">
+                            2
+                        </div>
+<span class="text-xs font-medium text-gray-400">样例上传与建表</span>
+</div>
+<!-- Step 3: Future -->
+<div class="relative flex flex-col items-center gap-2 z-10 flex-1">
+<div class="w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-400 flex items-center justify-center font-bold">
+                            3
+                        </div>
+<span class="text-xs font-medium text-gray-400">上传表单配置</span>
+</div>
+<!-- Step 4: Future -->
+<div class="relative flex flex-col items-center gap-2 z-10 flex-1">
+<div class="w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-400 flex items-center justify-center font-bold">
+                            4
+                        </div>
+<span class="text-xs font-medium text-gray-400">校验规则</span>
+</div>
+<!-- Step 5: Future -->
+<div class="relative flex flex-col items-center gap-2 z-10 flex-1">
+<div class="w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-400 flex items-center justify-center font-bold">
+                            5
+                        </div>
+<span class="text-xs font-medium text-gray-400">发布确认</span>
+</div>
+</div>
+<!-- Content Card: Step 1 -->
+<div class="bg-white rounded-xl p-8 shadow-sm border border-gray-100 flex-grow">
+<div class="mb-8 border-b border-gray-50 pb-4">
+<h2 class="text-headline-section font-headline-section text-gray-900">填写基础配置</h2>
+<p class="text-body-base text-gray-500 mt-1">请定义模板的基本属性，这有助于后续的文件归档与自动化处理。</p>
+</div>
+<div class="space-y-stack-lg max-w-2xl">
+<!-- Form Field: Template Name -->
+<div class="flex flex-col gap-2">
+<label class="font-label-bold text-label-bold text-gray-700 flex items-center gap-1">
+                                模板名称 <span class="text-error">*</span>
+</label>
+<input class="w-full h-11 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 transition-all" placeholder="请输入模板名称，例如：2026年度预算执行情况表" type="text"/>
+<p class="text-caption font-caption text-gray-400 italic">同一目录内不可重名</p>
+</div>
+<!-- Form Field: Directory Select -->
+<div class="flex flex-col gap-2">
+<label class="font-label-bold text-label-bold text-gray-700 flex items-center gap-1">
+                                所属目录 <span class="text-error">*</span>
+</label>
+<div class="relative">
+<div class="w-full h-11 border border-gray-200 bg-gray-50/50 rounded-lg px-4 flex items-center justify-between cursor-pointer hover:border-blue-300 transition-colors">
+<span class="text-body-base text-gray-700">产品营销 &gt; 某品牌 &gt; 月度费用报表</span>
+<span class="material-symbols-outlined text-gray-400">expand_more</span>
+</div>
+</div>
+<div class="flex items-start gap-2 bg-orange-50 border border-orange-100 p-3 rounded-lg">
+<span class="material-symbols-outlined text-orange-500 text-sm mt-0.5" style="font-variation-settings: 'FILL' 1;">warning</span>
+<p class="text-caption font-caption text-orange-700 leading-relaxed">
+                                    已绑定模板的目录不可再次绑定。若需更改，请先在目录管理中解绑现有模板。
+                                </p>
+</div>
+</div>
+<!-- Form Field: Description -->
+<div class="flex flex-col gap-2">
+<label class="font-label-bold text-label-bold text-gray-700">
+                                模板描述
+                            </label>
+<textarea class="w-full border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 transition-all resize-none" placeholder="请输入关于此模板的用途、更新频率或其他备注信息..." rows="4"></textarea>
+</div>
+</div>
+<!-- Bottom Actions -->
+<div class="mt-12 pt-8 border-t border-gray-100 flex justify-end items-center">
+<button class="flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-700 active:scale-[0.97] transition-all shadow-lg shadow-blue-100">
+<span>下一步</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Footer Integration -->
+<footer class="w-full py-8 flex flex-col items-center justify-center gap-2 mt-auto font-inter text-xs">
+<div class="flex items-center gap-4">
+<a class="text-gray-400 hover:text-blue-600 underline transition-colors" href="#">隐私政策</a>
+<a class="text-gray-400 hover:text-blue-600 underline transition-colors" href="#">服务条款</a>
+<a class="text-gray-400 hover:text-blue-600 underline transition-colors" href="#">联系支持</a>
+</div>
+<p class="text-gray-400">© 2026 企业数据中台</p>
+</footer>
+</div>
+</main>
+</div>
+<!-- Background Decorative Elements -->
+<div class="fixed top-0 right-0 -z-10 w-[40vw] h-[409px] bg-blue-50 opacity-20 blur-[120px] rounded-full pointer-events-none"></div>
+<div class="fixed bottom-0 left-0 -z-10 w-[30vw] h-[307px] bg-gray-200 opacity-10 blur-[100px] rounded-full pointer-events-none"></div>
+</body></html>

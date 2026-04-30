@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>登录 - 数据上报平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="min-h-screen flex">
+
+<!-- Left Panel: Branding -->
+<div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 flex-col justify-between p-12 relative overflow-hidden">
+    <!-- Background decoration -->
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="relative z-10">
+        <div class="flex items-center gap-3 mb-16">
+            <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+            </div>
+            <span class="text-white font-semibold text-lg">数据上报平台</span>
+        </div>
+
+        <div>
+            <h1 class="text-4xl font-bold text-white mb-4 leading-tight">
+                统一数据上报<br/>管理中心
+            </h1>
+            <p class="text-blue-100 text-base leading-relaxed">
+                面向国货美妆集团各业务线，提供安全、高效的<br/>
+                标准化数据上报与校验服务。
+            </p>
+        </div>
+    </div>
+
+    <div class="relative z-10 flex gap-8">
+        <div>
+            <p class="text-3xl font-bold text-white">99.9%</p>
+            <p class="text-blue-200 text-sm mt-1">服务可用率</p>
+        </div>
+        <div>
+            <p class="text-3xl font-bold text-white">秒级</p>
+            <p class="text-blue-200 text-sm mt-1">数据校验</p>
+        </div>
+        <div>
+            <p class="text-3xl font-bold text-white">全程</p>
+            <p class="text-blue-200 text-sm mt-1">留痕追溯</p>
+        </div>
+    </div>
+</div>
+
+<!-- Right Panel: Login -->
+<div class="flex-1 flex items-center justify-center p-8 bg-white" x-data="{ loading: false }">
+    <div class="w-full max-w-sm">
+        <!-- Mobile logo -->
+        <div class="lg:hidden flex items-center gap-2 mb-10">
+            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+            </div>
+            <span class="font-semibold text-gray-800">数据上报平台</span>
+        </div>
+
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">欢迎回来</h2>
+        <p class="text-gray-500 text-sm mb-8">使用飞书账号登录，享受无缝协作体验</p>
+
+        <a href="/auth/feishu/login"
+           @click="loading = true"
+           class="flex items-center justify-center gap-3 w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium rounded-xl transition-all duration-150 shadow-sm hover:shadow-md">
+            <template x-if="!loading">
+                <!-- Feishu icon -->
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+                </svg>
+            </template>
+            <template x-if="loading">
+                <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+            </template>
+            <span x-text="loading ? '跳转中...' : '飞书账号一键登录'"></span>
+        </a>
+
+        <p class="text-center text-xs text-gray-400 mt-6">
+            登录即表示同意
+            <a href="#" class="text-blue-500 hover:underline">使用条款</a>
+            与
+            <a href="#" class="text-blue-500 hover:underline">隐私政策</a>
+        </p>
+
+        <div class="mt-8 pt-6 border-t border-gray-100">
+            <p class="text-xs text-gray-400 text-center">如遇登录问题，请联系 IT 支持</p>
+        </div>
+
+        <!-- 开发调试入口 -->
+        <div class="mt-6" x-data="{ open: false }">
+            <button @click="open = !open"
+                    class="w-full flex items-center justify-center gap-1.5 text-xs text-gray-300 hover:text-gray-400 transition-colors">
+                <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                开发调试
+            </button>
+            <div x-show="open" x-transition class="mt-3 p-3 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                <p class="text-xs text-gray-400 mb-2 text-center">模拟登录（仅限本地开发）</p>
+                <div class="flex gap-2">
+                    <a href="/auth/mock/login?username=测试用户&role=user"
+                       class="flex-1 text-center py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        普通用户
+                    </a>
+                    <a href="/auth/mock/login?username=管理员&role=admin"
+                       class="flex-1 text-center py-1.5 text-xs font-medium text-orange-600 bg-white border border-orange-200 rounded-lg hover:bg-orange-50 transition-colors">
+                        管理员
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>上传文件 - 数据上报平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none!important}</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Top Nav -->
+<nav class="bg-white border-b border-gray-200 px-6 flex items-center justify-between fixed top-0 left-0 right-0 z-30 h-14">
+    <div class="flex items-center gap-3">
+        <a href="/home" class="flex items-center gap-3 hover:opacity-80">
+            <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-md flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+            </div>
+            <span class="font-semibold text-gray-800 text-sm">数据上报平台</span>
+        </a>
+        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+        <span class="text-sm text-gray-500">上传文件</span>
+    </div>
+    <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-600" th:text="${loginUser?.userName}"></span>
+        <span th:if="${loginUser?.admin}" class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">管理员</span>
+    </div>
+</nav>
+
+<div class="pt-14 max-w-3xl mx-auto px-6 py-8"
+     th:attr="x-data='uploadApp(' + ${directoryId} + ')'"
+     x-init="init()">
+
+    <!-- Breadcrumb -->
+    <div class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <a href="/home" class="hover:text-blue-600">首页</a>
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-gray-900 font-medium" x-text="directoryName">加载中...</span>
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-gray-900">上传文件</span>
+    </div>
+
+    <!-- Main Card -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+
+        <!-- Step indicator -->
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-6">
+            <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold"
+                     :class="step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'">1</div>
+                <span class="text-sm" :class="step >= 1 ? 'text-gray-800' : 'text-gray-400'">选择文件</span>
+            </div>
+            <div class="flex-1 h-px bg-gray-200"></div>
+            <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold"
+                     :class="step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'">2</div>
+                <span class="text-sm" :class="step >= 2 ? 'text-gray-800' : 'text-gray-400'">上传中</span>
+            </div>
+            <div class="flex-1 h-px bg-gray-200"></div>
+            <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold"
+                     :class="step >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'">3</div>
+                <span class="text-sm" :class="step >= 3 ? 'text-gray-800' : 'text-gray-400'">完成</span>
+            </div>
+        </div>
+
+        <div class="p-6">
+
+            <!-- Step 1: File Select -->
+            <div x-show="step === 1">
+                <!-- Drop Zone -->
+                <div class="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/40 transition-all"
+                     :class="dragover ? 'border-blue-400 bg-blue-50' : ''"
+                     @dragover.prevent="dragover = true"
+                     @dragleave.prevent="dragover = false"
+                     @drop.prevent="onDrop($event)"
+                     @click="$refs.fileInput.click()">
+                    <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="text-gray-600 font-medium">点击选择文件或拖拽到此处</p>
+                    <p class="text-sm text-gray-400 mt-1">支持 .xlsx、.xls、.csv 格式，最大 2GB</p>
+                    <input type="file" x-ref="fileInput" class="hidden" accept=".xlsx,.xls,.csv" @change="onFileSelect($event)"/>
+                </div>
+
+                <!-- File Preview -->
+                <div x-show="selectedFile" class="mt-4 flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-800 truncate" x-text="selectedFile?.name"></p>
+                        <p class="text-xs text-gray-500" x-text="formatSize(selectedFile?.size)"></p>
+                    </div>
+                    <button @click="selectedFile = null" class="text-gray-400 hover:text-red-500 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- No-data declare -->
+                <div class="mt-4 flex items-center gap-2 text-sm text-gray-500">
+                    <span>没有数据？</span>
+                    <button @click="noDataDeclare()"
+                            :disabled="submitting"
+                            class="text-blue-600 hover:underline font-medium disabled:opacity-50">无数据申报</button>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button @click="startUpload()"
+                            :disabled="!selectedFile || submitting"
+                            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white text-sm font-medium rounded-lg transition-colors">
+                        开始上传
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Uploading -->
+            <div x-show="step === 2" x-cloak>
+                <div class="text-center mb-6">
+                    <p class="font-medium text-gray-800" x-text="uploadStatus"></p>
+                    <p class="text-sm text-gray-500 mt-1" x-text="selectedFile?.name"></p>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="bg-gray-200 rounded-full h-2.5 mb-2 overflow-hidden">
+                    <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                         :style="'width: ' + progress + '%'"></div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500">
+                    <span x-text="'已上传 ' + uploadedChunks + ' / ' + totalChunks + ' 分片'"></span>
+                    <span x-text="progress + '%'"></span>
+                </div>
+
+                <!-- Resumable hint -->
+                <div class="mt-4 flex items-center gap-2 text-sm text-blue-600 bg-blue-50 rounded-lg px-4 py-2.5">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>支持断点续传，刷新页面后可恢复上传进度</span>
+                </div>
+            </div>
+
+            <!-- Step 3: Done -->
+            <div x-show="step === 3" x-cloak class="text-center py-6">
+                <template x-if="!uploadError">
+                    <div>
+                        <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-1">上传成功</h3>
+                        <p class="text-sm text-gray-500 mb-6">文件已提交校验，结果将在稍后通知您</p>
+                        <div class="flex items-center justify-center gap-3">
+                            <a :href="'/directory/' + directoryId + '/history'"
+                               class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">查看上传历史</a>
+                            <button @click="reset()" class="px-5 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50">继续上传</button>
+                        </div>
+                    </div>
+                </template>
+                <template x-if="uploadError">
+                    <div>
+                        <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-1">上传失败</h3>
+                        <p class="text-sm text-red-500 mb-6" x-text="uploadError"></p>
+                        <button @click="reset()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">重新上传</button>
+                    </div>
+                </template>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function uploadApp(directoryId) {
+    const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
+
+    return {
+        directoryId,
+        directoryName: '加载中...',
+        step: 1,
+        dragover: false,
+        selectedFile: null,
+        taskId: null,
+        totalChunks: 0,
+        uploadedChunks: 0,
+        progress: 0,
+        uploadStatus: '准备上传...',
+        uploadError: null,
+        submitting: false,
+
+        async init() {
+            // Load directory name from tree
+            try {
+                const res = await fetch('/harness/api/v1/directories/tree');
+                const json = await res.json();
+                if (json.code === 200) {
+                    const all = flattenTree(json.data);
+                    const dir = all.find(d => d.id == directoryId);
+                    if (dir) this.directoryName = dir.name;
+                }
+            } catch (e) {}
+        },
+
+        onDrop(e) {
+            this.dragover = false;
+            const file = e.dataTransfer.files[0];
+            if (file) this.validateAndSet(file);
+        },
+
+        onFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) this.validateAndSet(file);
+        },
+
+        validateAndSet(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+                alert('仅支持 .xlsx .xls .csv 格式');
+                return;
+            }
+            this.selectedFile = file;
+        },
+
+        async startUpload() {
+            if (!this.selectedFile || this.submitting) return;
+            this.submitting = true;
+            this.uploadError = null;
+            this.step = 2;
+
+            try {
+                // Init task
+                const initRes = await fetch('/harness/api/v1/upload/init', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        directoryId: this.directoryId,
+                        fileName: this.selectedFile.name,
+                        fileSize: this.selectedFile.size
+                    })
+                });
+                const initJson = await initRes.json();
+                if (initJson.code !== 200) throw new Error(initJson.msg || '初始化失败');
+
+                this.taskId = initJson.data.taskId;
+                const chunkSize = initJson.data.chunkSize || CHUNK_SIZE;
+                this.totalChunks = Math.ceil(this.selectedFile.size / chunkSize);
+                this.uploadStatus = '正在上传分片...';
+
+                // Check existing chunks (resume)
+                const chunksRes = await fetch('/harness/api/v1/upload/chunks?taskId=' + this.taskId);
+                const chunksJson = await chunksRes.json();
+                const uploaded = new Set(chunksJson.code === 200 ? chunksJson.data : []);
+                this.uploadedChunks = uploaded.size;
+
+                // Upload missing chunks
+                for (let i = 0; i < this.totalChunks; i++) {
+                    if (uploaded.has(i)) continue;
+
+                    const start = i * chunkSize;
+                    const end = Math.min(start + chunkSize, this.selectedFile.size);
+                    const blob = this.selectedFile.slice(start, end);
+
+                    const fd = new FormData();
+                    fd.append('taskId', this.taskId);
+                    fd.append('chunkIndex', i);
+                    fd.append('totalChunks', this.totalChunks);
+                    fd.append('file', blob, this.selectedFile.name);
+
+                    const r = await fetch('/harness/api/v1/upload/chunk', { method: 'POST', body: fd });
+                    const rj = await r.json();
+                    if (rj.code !== 200) throw new Error('分片 ' + i + ' 上传失败: ' + rj.msg);
+
+                    this.uploadedChunks++;
+                    this.progress = Math.round(this.uploadedChunks / this.totalChunks * 100);
+                }
+
+                // Merge
+                this.uploadStatus = '正在合并并校验...';
+                const mergeRes = await fetch('/harness/api/v1/upload/merge', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ taskId: this.taskId })
+                });
+                const mergeJson = await mergeRes.json();
+                if (mergeJson.code !== 200) throw new Error(mergeJson.msg || '合并失败');
+
+                this.step = 3;
+            } catch (e) {
+                this.uploadError = e.message;
+                this.step = 3;
+            } finally {
+                this.submitting = false;
+            }
+        },
+
+        async noDataDeclare() {
+            if (!confirm('确认申报本周期无数据？')) return;
+            this.submitting = true;
+            try {
+                const res = await fetch('/harness/api/v1/upload/no-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ directoryId: this.directoryId })
+                });
+                const json = await res.json();
+                if (json.code === 200) {
+                    this.step = 3;
+                } else {
+                    alert(json.msg || '申报失败');
+                }
+            } catch (e) {
+                alert('申报失败，请重试');
+            } finally {
+                this.submitting = false;
+            }
+        },
+
+        reset() {
+            this.step = 1;
+            this.selectedFile = null;
+            this.taskId = null;
+            this.totalChunks = 0;
+            this.uploadedChunks = 0;
+            this.progress = 0;
+            this.uploadError = null;
+            this.submitting = false;
+        },
+
+        formatSize(bytes) {
+            if (!bytes) return '';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+            return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+        }
+    };
+}
+
+function flattenTree(nodes) {
+    const result = [];
+    function walk(arr) {
+        for (const n of arr) {
+            result.push(n);
+            if (n.children) walk(n.children);
+        }
+    }
+    walk(nodes || []);
+    return result;
+}
+</script>
+</body>
+</html>

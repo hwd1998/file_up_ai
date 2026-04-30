@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(lark-cli wiki:*)",
+      "Bash(lark-cli doc:*)",
+      "Bash(lark-cli docs:*)",
+      "WebSearch",
+      "Bash(mvn --version)",
+      "Bash(mvn clean *)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git add *)"
+    ]
+  }
+}

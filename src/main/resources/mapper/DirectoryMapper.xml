@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.upload.mapper.DirectoryMapper">
+
+    <!-- 查询用户有权限的所有目录 ID -->
+    <select id="selectPermittedDirectoryIds" resultType="java.lang.Long">
+        SELECT DISTINCT dp.directory_id
+        FROM directory_permissions dp
+        WHERE dp.user_id = #{userId}
+          AND dp.permission_type = #{permType}
+          AND dp.is_deleted = 0
+    </select>
+
+</mapper>

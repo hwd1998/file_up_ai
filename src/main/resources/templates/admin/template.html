@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>模板管理 - 数据上报平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none!important}</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Top Nav -->
+<nav class="bg-white border-b border-gray-200 px-6 flex items-center justify-between fixed top-0 left-0 right-0 z-30 h-14">
+    <div class="flex items-center gap-3">
+        <a href="/home" class="flex items-center gap-3 hover:opacity-80">
+            <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-md flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+            </div>
+            <span class="font-semibold text-gray-800 text-sm">数据上报平台</span>
+        </a>
+        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+        <span class="text-sm text-gray-900 font-medium">模板管理</span>
+    </div>
+    <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-600" th:text="${loginUser?.userName}"></span>
+        <span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">管理员</span>
+        <a href="/home" class="text-xs text-gray-400 hover:text-gray-600 ml-2">返回首页</a>
+    </div>
+</nav>
+
+<div class="pt-14 flex min-h-screen">
+    <!-- Admin Sidebar -->
+    <aside class="w-48 bg-white border-r border-gray-200 fixed top-14 left-0 bottom-0 z-20">
+        <nav class="p-3 space-y-1">
+            <a href="/admin/template"
+               class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-600 border-r-2 border-blue-500">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                </svg>
+                数据模板
+            </a>
+            <a href="/home"
+               class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                </svg>
+                目录管理
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="ml-48 flex-1 p-6" x-data="templateApp()" x-init="loadTemplates()">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900">数据模板</h1>
+                <p class="text-sm text-gray-500 mt-0.5">管理数据上报的字段映射模板</p>
+            </div>
+            <button @click="openCreate()"
+                    class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                新建模板
+            </button>
+        </div>
+
+        <!-- Template List -->
+        <div class="grid gap-4">
+            <template x-if="loading">
+                <div class="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400">
+                    <svg class="w-5 h-5 animate-spin mx-auto mb-2 text-blue-500" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    加载中...
+                </div>
+            </template>
+
+            <template x-if="!loading && templates.length === 0">
+                <div class="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                    </svg>
+                    <p>暂无模板，点击「新建模板」创建</p>
+                </div>
+            </template>
+
+            <template x-for="tmpl in templates" :key="tmpl.id">
+                <div class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-sm transition-shadow">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="font-semibold text-gray-900" x-text="tmpl.name"></h3>
+                                <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                                      :class="tmpl.status === 'active' ? 'bg-green-100 text-green-700' : tmpl.status === 'draft' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'"
+                                      x-text="tmpl.status === 'active' ? '启用' : tmpl.status === 'draft' ? '草稿' : '禁用'"></span>
+                                <span class="text-xs text-gray-400" x-text="'v' + (tmpl.currentVersion || 1)"></span>
+                            </div>
+                            <p class="text-sm text-gray-500" x-text="tmpl.description || '暂无描述'"></p>
+                        </div>
+                        <div class="flex items-center gap-2 ml-4 flex-shrink-0">
+                            <button class="text-sm text-blue-600 hover:text-blue-800 font-medium">查看字段</button>
+                            <button class="text-sm text-gray-500 hover:text-gray-700 font-medium">编辑</button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </main>
+</div>
+
+<script>
+function templateApp() {
+    return {
+        templates: [],
+        loading: true,
+
+        async loadTemplates() {
+            try {
+                // Phase 2: Template management API - placeholder
+                this.templates = [];
+            } catch (e) {
+                console.error(e);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        openCreate() {
+            alert('模板创建功能将在 Phase 2 完成');
+        }
+    };
+}
+</script>
+</body>
+</html>
