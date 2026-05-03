@@ -9,6 +9,7 @@ import com.example.upload.mapper.*;
 import com.example.upload.model.dto.UploadInitDTO;
 import com.example.upload.model.entity.*;
 import com.example.upload.model.form.UploadInitForm;
+import com.example.upload.service.AsyncValidationService;
 import com.example.upload.service.DirectoryService;
 import com.example.upload.service.UploadService;
 import com.example.upload.util.QuickValidationUtil;
@@ -41,6 +42,7 @@ public class UploadServiceImpl implements UploadService {
     private final DirectoryService directoryService;
     private final UploadProperties uploadProperties;
     private final QuickValidationUtil quickValidationUtil;
+    private final AsyncValidationService asyncValidationService;
 
     @Override
     @Transactional
@@ -150,11 +152,11 @@ public class UploadServiceImpl implements UploadService {
             throw new BusinessException("文件快速校验失败：" + errors.get(0));
         }
 
-        // 快速校验通过，更新状态为处理中（等待异步完整校验，Phase2 实现）
-        task.setStatus(TaskStatus.PROCESSING.getCode());
+        // 快速校验通过，提交异步完整校验
+        task.setStatus(TaskStatus.VALIDATING.getCode());
         uploadTaskMapper.updateById(task);
-        log.info("任务 {} 快速校验通过，等待异步处理", taskId);
-        // TODO Phase2: 投递 RabbitMQ 消息触发异步完整校验
+        asyncValidationService.submitAsync(taskId);
+        log.info("任务 {} 快速校验通过，已提交异步完整校验", taskId);
     }
 
     @Override
