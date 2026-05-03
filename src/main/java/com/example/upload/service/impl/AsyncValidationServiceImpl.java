@@ -26,7 +26,7 @@ public class AsyncValidationServiceImpl implements AsyncValidationService {
             return;
         }
         // Phase 2 Task 9 完整实现
-        task.setStatus(TaskStatus.PROCESSING.getCode());
+        task.setStatus(TaskStatus.VALIDATING.getCode());
         uploadTaskMapper.updateById(task);
         log.info("异步校验骨架执行完成 taskId={}", taskId);
     }
