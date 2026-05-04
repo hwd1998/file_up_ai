@@ -254,6 +254,10 @@ public class TemplateServiceImpl implements TemplateService {
         dto.setId(tpl.getId());
         dto.setName(tpl.getName());
         dto.setDirectoryId(tpl.getDirectoryId());
+        if (tpl.getDirectoryId() != null) {
+            Directory dir = directoryMapper.selectById(tpl.getDirectoryId());
+            if (dir != null) dto.setDirectoryName(dir.getName());
+        }
         dto.setStatus(tpl.getStatus());
         dto.setCurrentVersion(tpl.getCurrentVersion());
         dto.setDirtyThreshold(tpl.getDirtyThreshold());
