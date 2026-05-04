@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>创建模板 - 数据上报平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none!important}</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<nav class="bg-white border-b border-gray-200 px-6 flex items-center justify-between fixed top-0 left-0 right-0 z-30 h-14">
+    <div class="flex items-center gap-3">
+        <a href="/admin/templates" class="flex items-center gap-3 hover:opacity-80">
+            <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-md flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            </div>
+            <span class="font-semibold text-gray-800 text-sm">数据上报平台</span>
+        </a>
+        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-sm text-gray-900 font-medium">创建模板</span>
+    </div>
+    <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-600" th:text="${loginUser?.userName}"></span>
+        <a href="/admin/templates" class="text-xs text-gray-400 hover:text-gray-600">返回列表</a>
+    </div>
+</nav>
+
+<div class="pt-14 max-w-4xl mx-auto p-6" x-data="wizard()" x-init="init()">
+    <!-- 步骤指示器 -->
+    <div class="flex items-center justify-between mb-8">
+        <template x-for="(label, idx) in steps" :key="idx">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors"
+                     :class="currentStep > idx+1 ? 'bg-green-500 border-green-500 text-white' :
+                             currentStep === idx+1 ? 'bg-blue-600 border-blue-600 text-white' :
+                             'bg-white border-gray-300 text-gray-400'"
+                     x-text="currentStep > idx+1 ? '✓' : idx+1"></div>
+                <span class="text-sm" :class="currentStep === idx+1 ? 'font-semibold text-gray-900' : 'text-gray-400'" x-text="label"></span>
+                <div x-show="idx < steps.length-1" class="w-12 h-px bg-gray-200 mx-2"></div>
+            </div>
+        </template>
+    </div>
+
+    <!-- 错误提示 -->
+    <div x-show="error" x-cloak class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4 flex justify-between">
+        <span x-text="error"></span>
+        <button @click="error=null">✕</button>
+    </div>
+
+    <!-- Step 1: 基础信息 -->
+    <div x-show="currentStep===1" class="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">基础信息</h2>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">模板名称 <span class="text-red-500">*</span></label>
+                <input type="text" x-model="form.name" placeholder="如：产品营销数据模板"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-400"/>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">绑定目录 <span class="text-red-500">*</span></label>
+                <select x-model="form.directoryId" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-400">
+                    <option value="">请选择目录</option>
+                    <template x-for="dir in directories" :key="dir.id">
+                        <option :value="dir.id" x-text="dir.name"></option>
+                    </template>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">脏数据阈值：<span x-text="form.dirtyThreshold"></span>%</label>
+                <input type="range" x-model="form.dirtyThreshold" min="1" max="50" class="w-full"/>
+                <p class="text-xs text-gray-400 mt-1">错误行占总行数超过此比例时整批拒绝</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: 样例文件 + DDL -->
+    <div x-show="currentStep===2" class="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">上传样例文件 &amp; 建表</h2>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">样例文件（Excel/CSV）<span class="text-red-500">*</span></label>
+                <input type="file" accept=".xlsx,.xls,.csv" @change="onFileSelect($event)"
+                       class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+            </div>
+            <template x-if="parsedFields.length > 0">
+                <div>
+                    <p class="text-sm font-medium text-gray-700 mb-2">解析到 <span x-text="parsedFields.length"></span> 个字段：</p>
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50"><tr>
+                                <th class="text-left px-4 py-2 text-gray-500">列名</th>
+                                <th class="text-left px-4 py-2 text-gray-500">推断类型</th>
+                            </tr></thead>
+                            <tbody class="divide-y divide-gray-100">
+                            <template x-for="f in parsedFields" :key="f.fieldOrder">
+                                <tr><td class="px-4 py-2 text-gray-800" x-text="f.columnName"></td>
+                                    <td class="px-4 py-2"><span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded" x-text="f.inferredType"></span></td></tr>
+                            </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </template>
+            <template x-if="ddlSql">
+                <div>
+                    <p class="text-sm font-medium text-gray-700 mb-2">DDL 预览：</p>
+                    <pre class="bg-gray-900 text-green-400 text-xs p-4 rounded-lg overflow-x-auto" x-text="ddlSql"></pre>
+                    <button @click="executeTable()" :disabled="tableCreated"
+                            class="mt-3 px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+                            :class="tableCreated ? 'bg-green-100 text-green-700 cursor-default' : 'bg-blue-600 hover:bg-blue-700 text-white'">
+                        <span x-text="tableCreated ? '✓ 已建表：' + tableName : '执行建表'"></span>
+                    </button>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Step 3: 字段映射 -->
+    <div x-show="currentStep===3" class="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">字段映射配置</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="text-left px-3 py-2 text-gray-500">源列名</th>
+                    <th class="text-left px-3 py-2 text-gray-500">目标列名</th>
+                    <th class="text-center px-3 py-2 text-gray-500">必填</th>
+                    <th class="text-left px-3 py-2 text-gray-500">常量值</th>
+                    <th class="text-center px-3 py-2 text-gray-500">跳过</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                <template x-for="f in fieldMappings" :key="f.id">
+                    <tr :class="f.isSkipped ? 'opacity-40' : ''">
+                        <td class="px-3 py-2 text-gray-700" x-text="f.sourceColumn"></td>
+                        <td class="px-3 py-2">
+                            <input type="text" x-model="f.targetColumn" :disabled="f.isSkipped"
+                                   class="w-full px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"/>
+                        </td>
+                        <td class="px-3 py-2 text-center">
+                            <input type="checkbox" :checked="f.isRequired" @change="f.isRequired=f.isRequired?0:1" :disabled="f.isSkipped"/>
+                        </td>
+                        <td class="px-3 py-2">
+                            <input type="text" x-model="f.constantValue" placeholder="常量映射（可选）" :disabled="f.isSkipped"
+                                   class="w-full px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"/>
+                        </td>
+                        <td class="px-3 py-2 text-center">
+                            <input type="checkbox" :checked="f.isSkipped" @change="f.isSkipped=f.isSkipped?0:1"/>
+                        </td>
+                    </tr>
+                </template>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Step 4: 校验规则 -->
+    <div x-show="currentStep===4" class="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">校验规则配置</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="text-left px-3 py-2 text-gray-500">字段</th>
+                    <th class="text-left px-3 py-2 text-gray-500">枚举值（逗号分隔）</th>
+                    <th class="text-left px-3 py-2 text-gray-500">正则表达式</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                <template x-for="f in fieldMappings.filter(f=>!f.isSkipped)" :key="f.id">
+                    <tr>
+                        <td class="px-3 py-2 text-gray-700" x-text="f.sourceColumn"></td>
+                        <td class="px-3 py-2">
+                            <input type="text" x-model="f._enumInput" placeholder="如：北京,上海,广州"
+                                   class="w-full px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"/>
+                        </td>
+                        <td class="px-3 py-2">
+                            <input type="text" x-model="f._regexInput" placeholder="如：^\d{4}-\d{2}$"
+                                   class="w-full px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"/>
+                        </td>
+                    </tr>
+                </template>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Step 5: 发布确认 -->
+    <div x-show="currentStep===5" class="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">发布模板</h2>
+        <div class="space-y-4">
+            <div class="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
+                <div class="flex"><span class="text-gray-500 w-24">模板名称</span><span class="font-medium text-gray-800" x-text="form.name"></span></div>
+                <div class="flex"><span class="text-gray-500 w-24">版本号</span><span class="font-medium text-gray-800">V1.0</span></div>
+                <div class="flex"><span class="text-gray-500 w-24">字段数</span><span class="font-medium text-gray-800" x-text="fieldMappings.filter(f=>!f.isSkipped).length + ' 个'"></span></div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">变更说明（可选）</label>
+                <textarea x-model="changeLog" rows="3" placeholder="描述本版本的主要内容..."
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-400"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部按钮 -->
+    <div class="flex justify-between mt-6">
+        <button x-show="currentStep > 1" @click="currentStep--"
+                class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
+            上一步
+        </button>
+        <div class="flex gap-3 ml-auto">
+            <button x-show="currentStep < 5" @click="nextStep()" :disabled="loading"
+                    class="px-6 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+                <span x-text="loading ? '处理中...' : '下一步'"></span>
+            </button>
+            <button x-show="currentStep === 5" @click="publish()" :disabled="loading"
+                    class="px-6 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50">
+                <span x-text="loading ? '发布中...' : '发布模板'"></span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function wizard() {
+    return {
+        currentStep: 1,
+        steps: ['基础信息', '样例文件', '字段映射', '校验规则', '发布确认'],
+        form: { name: '', directoryId: '', dirtyThreshold: 10 },
+        templateId: null,
+        directories: [],
+        parsedFields: [],
+        ddlSql: '',
+        tableName: '',
+        tableCreated: false,
+        fieldMappings: [],
+        changeLog: '',
+        loading: false,
+        error: null,
+
+        async init() {
+            const res = await fetch('/harness/api/v1/directories/tree');
+            const json = await res.json();
+            if (json.code === 200) {
+                this.directories = this.flatLeaves(json.data || []);
+            }
+        },
+
+        flatLeaves(nodes) {
+            const result = [];
+            for (const n of nodes) {
+                if (n.isLeaf) result.push(n);
+                if (n.children) result.push(...this.flatLeaves(n.children));
+            }
+            return result;
+        },
+
+        async nextStep() {
+            this.error = null;
+            this.loading = true;
+            try {
+                if (this.currentStep === 1) await this.saveStep1();
+                else if (this.currentStep === 2) this.validateStep2();
+                else if (this.currentStep === 3) await this.saveStep3();
+                else if (this.currentStep === 4) await this.saveStep4();
+                this.currentStep++;
+            } catch (e) {
+                this.error = e.message;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async saveStep1() {
+            if (!this.form.name.trim()) throw new Error('请输入模板名称');
+            if (!this.form.directoryId) throw new Error('请选择绑定目录');
+            const res = await fetch('/harness/api/v1/templates', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: this.form.name, directoryId: this.form.directoryId, dirtyThreshold: this.form.dirtyThreshold })
+            });
+            const json = await res.json();
+            if (json.code !== 200) throw new Error(json.msg || '创建失败');
+            this.templateId = json.data;
+        },
+
+        async onFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file || !this.templateId) return;
+            this.loading = true;
+            this.error = null;
+            try {
+                const fd = new FormData();
+                fd.append('file', file);
+                const res = await fetch(`/harness/api/v1/templates/${this.templateId}/sample`, { method: 'PUT', body: fd });
+                const json = await res.json();
+                if (json.code !== 200) throw new Error(json.msg || '解析失败');
+                this.parsedFields = json.data;
+                const ddlRes = await fetch(`/harness/api/v1/templates/${this.templateId}/ddl`, { method: 'POST' });
+                const ddlJson = await ddlRes.json();
+                if (ddlJson.code === 200) { this.ddlSql = ddlJson.data.ddlSql; this.tableName = ddlJson.data.tableName; }
+            } catch (e) {
+                this.error = e.message;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async executeTable() {
+            this.loading = true;
+            try {
+                const res = await fetch(`/harness/api/v1/templates/${this.templateId}/table`, { method: 'POST' });
+                const json = await res.json();
+                if (json.code !== 200) throw new Error(json.msg || '建表失败');
+                this.tableCreated = true;
+                await this.loadFields();
+            } catch (e) {
+                this.error = e.message;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        validateStep2() {
+            if (!this.tableCreated) throw new Error('请先执行建表');
+        },
+
+        async loadFields() {
+            const res = await fetch('/harness/api/v1/templates/' + this.templateId + '/versions');
+            const json = await res.json();
+            if (json.code === 200 && json.data.length > 0) {
+                const versionId = json.data[0].id;
+                const fRes = await fetch(`/harness/api/v1/templates/${this.templateId}/fields?versionId=${versionId}`);
+                const fJson = await fRes.json();
+                if (fJson.code === 200) {
+                    this.fieldMappings = fJson.data.map(f => ({ ...f, _enumInput: '', _regexInput: '' }));
+                }
+            }
+        },
+
+        async saveStep3() {
+            const res = await fetch(`/harness/api/v1/templates/${this.templateId}/field-mapping`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.fieldMappings)
+            });
+            const json = await res.json();
+            if (json.code !== 200) throw new Error(json.msg || '保存字段映射失败');
+        },
+
+        async saveStep4() {
+            const rules = this.fieldMappings.filter(f => !f.isSkipped).map(f => {
+                const ruleObj = {};
+                if (f._enumInput && f._enumInput.trim()) {
+                    ruleObj.enum = f._enumInput.split(',').map(s => s.trim()).filter(Boolean);
+                }
+                if (f._regexInput && f._regexInput.trim()) {
+                    ruleObj.regex = f._regexInput.trim();
+                }
+                return { id: f.id, validationRules: Object.keys(ruleObj).length ? JSON.stringify(ruleObj) : null };
+            });
+            const res = await fetch(`/harness/api/v1/templates/${this.templateId}/validation-rules`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(rules)
+            });
+            const json = await res.json();
+            if (json.code !== 200) throw new Error(json.msg || '保存校验规则失败');
+        },
+
+        async publish() {
+            this.loading = true;
+            this.error = null;
+            try {
+                const res = await fetch(`/harness/api/v1/templates/${this.templateId}/publish`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ changeLog: this.changeLog })
+                });
+                const json = await res.json();
+                if (json.code !== 200) throw new Error(json.msg || '发布失败');
+                alert('模板发布成功！');
+                window.location.href = '/admin/templates';
+            } catch (e) {
+                this.error = e.message;
+            } finally {
+                this.loading = false;
+            }
+        }
+    };
+}
+</script>
+</body>
+</html>
