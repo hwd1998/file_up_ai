@@ -54,6 +54,33 @@ public class ViewController {
         return "admin/template";
     }
 
+    @GetMapping("/admin/directory")
+    public String adminDirectory(HttpSession session, Model model) {
+        LoginUserDTO loginUser = getLoginUser(session);
+        if (loginUser == null) return "redirect:/login";
+        if (!loginUser.isAdmin()) return "redirect:/home";
+        model.addAttribute("loginUser", loginUser);
+        return "admin/directory";
+    }
+
+    @GetMapping("/admin/templates")
+    public String adminTemplates(HttpSession session, Model model) {
+        LoginUserDTO loginUser = getLoginUser(session);
+        if (loginUser == null) return "redirect:/login";
+        if (!loginUser.isAdmin()) return "redirect:/home";
+        model.addAttribute("loginUser", loginUser);
+        return "admin/template";
+    }
+
+    @GetMapping("/admin/templates/create")
+    public String adminTemplateCreate(HttpSession session, Model model) {
+        LoginUserDTO loginUser = getLoginUser(session);
+        if (loginUser == null) return "redirect:/login";
+        if (!loginUser.isAdmin()) return "redirect:/home";
+        model.addAttribute("loginUser", loginUser);
+        return "admin/template-wizard";
+    }
+
     private LoginUserDTO getLoginUser(HttpSession session) {
         return (LoginUserDTO) session.getAttribute(UploadConstants.SESSION_LOGIN_USER);
     }
