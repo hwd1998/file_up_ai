@@ -46,6 +46,7 @@ public class TemplateServiceImpl implements TemplateService {
         TemplateVersion version = new TemplateVersion();
         version.setTemplateId(tpl.getId());
         version.setVersion("V1.0");
+        version.setTargetTableName("pending");
         version.setCreatedBy(userId);
         templateVersionMapper.insert(version);
 
@@ -63,12 +64,17 @@ public class TemplateServiceImpl implements TemplateService {
 
         List<ParsedFieldDTO> fields = fileParseService.parseSample(file);
 
+        java.util.Set<String> usedCols = new java.util.HashSet<>();
         for (ParsedFieldDTO f : fields) {
             TemplateField field = new TemplateField();
             field.setVersionId(version.getId());
             field.setFieldName(f.getColumnName());
             field.setSourceColumn(f.getColumnName());
-            field.setTargetColumn(toSnakeCase(f.getColumnName()));
+            String base = toSnakeCase(f.getColumnName());
+            String col = base;
+            int seq = 2;
+            while (!usedCols.add(col)) col = base + "_" + seq++;
+            field.setTargetColumn(col);
             field.setFieldType(f.getInferredType());
             field.setFieldOrder(f.getFieldOrder());
             field.setIsRequired(0);
@@ -136,9 +142,15 @@ public class TemplateServiceImpl implements TemplateService {
     @Transactional
     public void publish(Long templateId, String changeLog, Long userId) {
         TemplateVersion version = getDraftVersionOrThrow(templateId);
-        if (version.getTargetTableName() == null) {
-            throw new BusinessException("请先执行建表（Step2）后再发布");
-        }
+
+        List<TemplateField> fields = templateFieldMapper.selectList(
+                new LambdaQueryWrapper<TemplateField>()
+                        .eq(TemplateField::getVersionId, version.getId())
+                        .orderByAsc(TemplateField::getFieldOrder));
+        DdlPreviewDTO ddl = ddlService.generateDdl(templateId, 1, fields);
+        ddlService.executeCreateTable(ddl);
+        version.setTargetTableName(ddl.getTableName());
+
         version.setChangeLog(changeLog);
         templateVersionMapper.updateById(version);
 
@@ -276,7 +288,26 @@ public class TemplateServiceImpl implements TemplateService {
     }
 
     private String toSnakeCase(String name) {
-        return name.replaceAll("[^a-zA-Z0-9_]", "_").toLowerCase();
+        if (name == null || name.isBlank()) return "col";
+        StringBuilder sb = new StringBuilder();
+        for (char c : name.trim().toCharArray()) {
+            if (c >= 0x4E00 && c <= 0x9FFF) {
+                if (sb.length() > 0 && sb.charAt(sb.length() - 1) != '_') sb.append('_');
+                try {
+                    sb.append(cn.hutool.extra.pinyin.PinyinUtil.getPinyin(c));
+                } catch (Exception e) {
+                    sb.append('x');
+                }
+                sb.append('_');
+            } else if (Character.isLetterOrDigit(c)) {
+                sb.append(Character.toLowerCase(c));
+            } else {
+                if (sb.length() > 0 && sb.charAt(sb.length() - 1) != '_') sb.append('_');
+            }
+        }
+        String result = sb.toString().replaceAll("_+", "_").replaceAll("^_+|_+$", "");
+        if (result.isEmpty() || Character.isDigit(result.charAt(0))) result = "col_" + result;
+        return result.isEmpty() ? "col" : result;
     }
 
     private String str(Map<String, Object> m, String key) {

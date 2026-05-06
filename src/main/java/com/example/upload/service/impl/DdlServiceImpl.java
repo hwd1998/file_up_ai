@@ -35,11 +35,15 @@ public class DdlServiceImpl implements DdlService {
                 .sorted(Comparator.comparing(TemplateField::getFieldOrder))
                 .toList();
 
+        java.util.Set<String> seen = new java.util.HashSet<>();
         for (TemplateField field : active) {
             String col = field.getTargetColumn();
             if (col == null || col.isBlank()) continue;
             if (!SAFE_NAME.matcher(col).matches()) {
                 throw new BusinessException("列名包含非法字符：" + col + "（仅允许字母、数字、下划线）");
+            }
+            if (!seen.add(col)) {
+                throw new BusinessException("存在重复的目标列名「" + col + "」，请在字段映射中修改");
             }
             sb.append("  `").append(col).append("` ").append(toMysqlType(field.getFieldType())).append(",\n");
         }

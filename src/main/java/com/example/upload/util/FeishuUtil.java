@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,9 +30,10 @@ public class FeishuUtil {
      * 构建飞书 OAuth 授权 URL
      */
     public String buildAuthUrl(String state) {
+        String encodedUri = URLEncoder.encode(feishuProperties.getRedirectUri(), StandardCharsets.UTF_8);
         return "https://open.feishu.cn/open-apis/authen/v1/authorize"
                 + "?app_id=" + feishuProperties.getAppId()
-                + "&redirect_uri=" + feishuProperties.getRedirectUri()
+                + "&redirect_uri=" + encodedUri
                 + "&state=" + state;
     }
 

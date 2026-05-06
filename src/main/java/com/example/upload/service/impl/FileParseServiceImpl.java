@@ -7,7 +7,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -40,8 +40,13 @@ public class FileParseServiceImpl implements FileParseService {
             } else {
                 throw new BusinessException("仅支持 .xlsx / .xls / .csv 格式");
             }
+        } catch (BusinessException e) {
+            throw e;
         } catch (IOException e) {
             throw new BusinessException("文件读取失败：" + e.getMessage());
+        } catch (Exception e) {
+            log.error("解析文件异常", e);
+            throw new BusinessException("文件解析失败：" + e.getMessage());
         }
     }
 
@@ -62,7 +67,7 @@ public class FileParseServiceImpl implements FileParseService {
     }
 
     private List<ParsedFieldDTO> parseSampleExcel(InputStream is) throws IOException {
-        try (Workbook wb = new XSSFWorkbook(is)) {
+        try (Workbook wb = WorkbookFactory.create(is)) {
             Sheet sheet = wb.getSheetAt(0);
             Row headerRow = sheet.getRow(0);
             if (headerRow == null) throw new BusinessException("文件无表头行");
@@ -136,7 +141,7 @@ public class FileParseServiceImpl implements FileParseService {
     }
 
     private ParsedResult parseAllExcel(InputStream is) throws IOException {
-        try (Workbook wb = new XSSFWorkbook(is)) {
+        try (Workbook wb = WorkbookFactory.create(is)) {
             Sheet sheet = wb.getSheetAt(0);
             Row headerRow = sheet.getRow(0);
             if (headerRow == null) return new ParsedResult(List.of(), List.of());
